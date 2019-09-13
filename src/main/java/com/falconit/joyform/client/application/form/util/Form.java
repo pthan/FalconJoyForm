@@ -6,6 +6,9 @@
 package com.falconit.joyform.client.application.form.util;
 
 import com.falconit.joyform.client.application.form.editor.FormEditorView;
+import com.falconit.joyform.client.application.form.util.WidgetGenerator.WidgetGeneratorButtonClickListener;
+import com.falconit.joyform.client.application.form.util.WidgetGenerator.WidgetGeneratorClickListener;
+import com.falconit.joyform.client.application.form.util.WidgetGenerator.WidgetGeneratorMouseListener;
 import com.falconit.joyform.shared.jsonconvert.ObjectConverter;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.json.client.JSONNumber;
@@ -22,6 +25,7 @@ import gwt.material.design.client.ui.MaterialRow;
 import gwt.material.design.client.ui.MaterialToast;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,20 +41,53 @@ public class Form implements java.io.Serializable{
         public static final String JSON_FORM_CONTAINER_ID = "container";
         public static final String JSON_PROCESS_ID = "process";
         public static final String JSON_TASK_ID = "task";
+        public static final String JSON_FORM_DATA = "formdata";
+        public static final String JSON_FORM_PERMISSION_ACTORS = "actors";
+        public static final String JSON_FORM_PERMISSION_GROUPS = "groups";
+        public static final String JSON_FORM_CREATED = "created";
+        public static final String JSON_FORM_UPDATED = "updated";
+        public static final String JSON_FORM_STATUS = "status";
+        public static final String JSON_FORM_OBJECT_NAME = "objectName";
+        public static final String JSON_FORM_FQDN = "fqdn";
+        
         
         public static final String DISPLAY_MODE_READ_ONLY = "readonly";
         public static final String DISPLAY_MODE_FILL_UP = "fillup";
         public static final String DISPLAY_MODE_NO_FRAME_FILL_UP = "noframe";
+        public static final String DISPLAY_MODE_DESIGNER = "designer";
         
         private Long id;
         private String name;
         private String container;
         private String process;
         private String task;
-        private String mode;
+        private String mode = DISPLAY_MODE_FILL_UP;
+        private boolean mouseOverShadow = false;
+        private java.util.Date created;
+        private java.util.Date updated;
+        private String[] actors;
+        private String[] groups;
+        private int status = 1;
+        private String objectName="";
+        private String fqdn="";
+        
+        
         private boolean draggable = true;
         private java.util.List<Field> child;
-
+        
+    public interface FormItemListener{
+        public void onClick( Field field, int index );
+        public void mouseEnter( Field field, int index );
+        public void mouseExit( Field field, int index );
+        public void onEditClick( Field field, int index );
+        public void onDeleteClick( Field field, int index );
+    }
+    
+    private FormItemListener itemListener;
+    public void setItemListener(FormItemListener itemListener){
+        this.itemListener = itemListener;
+    }
+    
     public Form() {
     }
 
@@ -128,6 +165,62 @@ public class Form implements java.io.Serializable{
         this.task = task;
     }
 
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public Date getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(Date updated) {
+        this.updated = updated;
+    }
+
+    public String[] getActors() {
+        return actors;
+    }
+
+    public void setActors(String[] actors) {
+        this.actors = actors;
+    }
+
+    public String[] getGroups() {
+        return groups;
+    }
+
+    public void setGroups(String[] groups) {
+        this.groups = groups;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public void setObjectName(String objectName) {
+        this.objectName = objectName;
+    }
+
+    public String getFqdn() {
+        return fqdn;
+    }
+
+    public void setFqdn(String fqdn) {
+        this.fqdn = fqdn;
+    }
+
     public String getMode() {
         return mode;
     }
@@ -142,6 +235,14 @@ public class Form implements java.io.Serializable{
 
     public void setDraggable(boolean draggable) {
         this.draggable = draggable;
+    }
+
+    public boolean isMouseOverShadow() {
+        return mouseOverShadow;
+    }
+
+    public void setMouseOverShadow(boolean mouseOverShadow) {
+        this.mouseOverShadow = mouseOverShadow;
     }
 
     public List<Field> getChild() {
@@ -169,9 +270,11 @@ public class Form implements java.io.Serializable{
             }
             MaterialRow row;
             WidgetGenerator generator = new WidgetGenerator();
+            eventRegister( generator );
+            
             try {
-                row = generator.getWidget( f );
-                generator.createWidget(f, row);
+                row = generator.getWidget( f, i );
+                generator.createWidget(f, row, i, getMode(), isMouseOverShadow() );
                             
                 if( isDraggable()){
                     MaterialDnd.draggable( row, JsDragOptions.create( Axis.VERTICAL ) );
@@ -184,6 +287,8 @@ public class Form implements java.io.Serializable{
                         child.get( count ).setLeft( w.getAbsoluteLeft() );
                         count++;
                     }
+                    
+                    //itemListener.widget( get( row.getId() ));
                     verticalMove( row, holder );
 
                    });
@@ -199,6 +304,45 @@ public class Form implements java.io.Serializable{
         }
 
     }
+    
+    private void eventRegister(WidgetGenerator generator){
+        if( getMode().equals(Form.DISPLAY_MODE_DESIGNER)){
+            
+            generator.setClickListener((Field field, int index) -> {
+                if( itemListener != null ) itemListener.onClick(field, index);
+            });
+            generator.setMouseListener(new WidgetGeneratorMouseListener(){
+                @Override
+                public void mouseEnter(Field field, int index) {
+                    if( itemListener != null ) itemListener.mouseEnter(field, index);
+                }
+
+                @Override
+                public void mouseExit(Field field, int index) {
+                    if( itemListener != null ) itemListener.mouseExit(field, index);
+                }
+            });
+            generator.setButtonListener(new WidgetGeneratorButtonClickListener(){
+                @Override
+                public void onEditClick(Field field, int index) {
+                    if( itemListener != null ) itemListener.onEditClick(field, index);
+                }
+
+                @Override
+                public void onDeleteClick(Field field, int index) {
+                    if( itemListener != null ) itemListener.onDeleteClick(field, index);
+                }
+            });
+        }
+    }
+    
+    private Field get( String id ){
+        for ( int i=0; i < child.size(); i++)
+            if( child.get(i).getId().equals( id ))
+                return child.get(i);
+        
+        return null;
+    }  
     
     /**
      * handling drag and drop movement
@@ -237,8 +381,7 @@ public class Form implements java.io.Serializable{
             render( holder );
         }catch(Exception ex){Window.alert(ex.getMessage());}
     }
-    
-        
+       
     private Field remove( String id ){
         for ( int i=0; i < child.size(); i++)
             if( child.get(i).getId().equals( id ))
