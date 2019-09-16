@@ -1,4 +1,4 @@
-package com.falconit.joyform.client.application.form.editor;
+package com.falconit.joyform.client.application.form.test;
 
 /*
  * #%L
@@ -40,8 +40,8 @@ import javax.inject.Inject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyView {
-    interface Binder extends UiBinder<Widget, FormEditorView> {
+public class FormEditorTestView extends ViewImpl implements FormEditorTestPresenter.MyView {
+    interface Binder extends UiBinder<Widget, FormEditorTestView> {
     }
 
     private Form myForm = new Form("Test name","test container", "test process", "test task");
@@ -50,14 +50,14 @@ public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyVi
     //MaterialPanel items[];
 
     @UiField
-    MaterialRow dropzoneContainer;
+    MaterialRow dropzoneContainer,FormComponent;
 
     @UiField
-    MaterialPanel holder, holder1;
-    @UiField
-    MaterialTextBox txtid, txtname, txtlabel, txtplaceholder;
-    @UiField 
-    MaterialComboBox cbofield;
+    MaterialPanel holder, holder1, holder2;
+   // @UiField
+    //MaterialTextBox txtid, txtname, txtlabel, txtplaceholder;
+    //@UiField 
+   // MaterialComboBox cbofield;
     @UiField 
     MaterialButton btnAdd;
     
@@ -65,7 +65,7 @@ public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyVi
     MaterialTextArea txtbrief;
 
     @Inject
-    FormEditorView(Binder uiBinder) {
+    FormEditorTestView(Binder uiBinder) {
         
         initWidget( uiBinder.createAndBindUi( this ) );
 
@@ -148,6 +148,66 @@ public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyVi
         });
     }
     
+    private java.util.List<Object[]> lst = new java.util.ArrayList<>();
+    private void addRow(){
+        Object o[] = new Object[4];
+        MaterialRow row = new MaterialRow();
+        row.setGrid("l12 m12 s12");
+        holder2.add(row);
+        
+        MaterialColumn colName = new MaterialColumn();
+        row.add(colName);
+        colName.setGrid("l3 m3 s12");
+        MaterialTextBox txtname = new MaterialTextBox();
+        colName.add(txtname);
+        
+        
+        MaterialColumn colcbo = new MaterialColumn();
+        colcbo.setGrid("l3 m3 s12");
+        row.add(colcbo);
+        MaterialComboBox cbo = new MaterialComboBox();
+        colcbo.add(cbo);
+        
+        cbo.addItem( "Text", Field.WIDGET_TEXT_BOX);
+       
+        cbo.addItem( "Check Box", Field.WIDGET_CHECK_BOX);
+        cbo.addItem( "Date", Field.WIDGET_DATE_TIME);
+        
+            cbo.addItem( "RadioButton", Field.WIDGET_RADIO_GROUP);
+               cbo.addItem( "File Upload", Field.WIDGET_FILE_UPLOADER);
+               cbo.addItem( "Media", Field.WIDGET_MEDIA);
+                  cbo.addItem( "Range", Field.WIDGET_RANGE);
+        
+        
+        MaterialColumn colcbo1 = new MaterialColumn();
+        colcbo1.setGrid("l3 m3 s12");
+        row.add(colcbo1);
+       
+        
+        cbo.addValueChangeHandler(handler ->{
+            if( cbo.getSingleValue().equals( Field.WIDGET_TEXT_BOX )){
+                 MaterialComboBox cboopt = new MaterialComboBox();
+        colcbo1.add(cboopt);
+                cboopt.clear();
+                cboopt.addItem( "Single Line", Field.WIDGET_TEXT_BOX);
+                cboopt.addItem( "Number", Field.WIDGET_TEXT_BOX_NUMBER);
+                  cboopt.addItem( "Editor", Field.WIDGET_TEXT_BOX_RICH);
+                      cboopt.addItem( "MultiLine", Field.WIDGET_TEXT_AREA);
+            }else{
+                MaterialButton btn_add = new MaterialButton();
+               colcbo1.add(btn_add);
+               btn_add.setText("Add Field");
+            }
+        });
+        
+        MaterialButton btn = new MaterialButton();
+        
+        o[3] = btn;
+        lst.add(o);
+        btn.setId( (lst.size() - 1)  +"" );
+         colcbo1.add(btn);
+    }
+    
     private void addTestItem( String type, String id, 
             String name, String label, String placeHolder ){
         
@@ -228,11 +288,11 @@ public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyVi
     @UiHandler("btnAdd")
     void onAdd(ClickEvent e) {
         
-        
+        addRow();
         
        // addTestItem( cbofield.getSingleValue().toString(), txtid.getText(), txtname.getText(), txtlabel.getText(), txtplaceholder.getText() );
-                 addTestItemLayout("textbox","id", "name", "label","" );
-        myForm.render(holder);
+                 //addTestItemLayout("textbox","id", "name", "label","" );
+        //myForm.render(holder);
     }
     
     @UiHandler("btnToJSON")
@@ -242,7 +302,7 @@ public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyVi
             txtbrief.setText( json.toString() );
         } catch (Exception ex) {
             Window.alert( ex.getMessage() );
-            Logger.getLogger(FormEditorView.class.getName()).log(Level.SEVERE, null, ex );
+            Logger.getLogger(FormEditorTestView.class.getName()).log(Level.SEVERE, null, ex );
         }
     }
         
@@ -254,7 +314,7 @@ public class FormEditorView extends ViewImpl implements FormEditorPresenter.MyVi
             form1.fromJSON( json, holder1 );
         } catch (Exception ex) {
             Window.alert( ex.getMessage() );
-            Logger.getLogger(FormEditorView.class.getName()).log(Level.SEVERE, null, ex );
+            Logger.getLogger(FormEditorTestView.class.getName()).log(Level.SEVERE, null, ex );
         }
     }
 }

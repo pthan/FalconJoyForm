@@ -253,6 +253,54 @@ public class Form implements java.io.Serializable{
         this.child = child;
     }
     
+    
+      public void renderwithThreeColumn( MaterialPanel holder ){
+        
+        if( child == null ) return;
+        holder.clear( );
+        
+        for( int i=0; i < child.size(); i++ ){
+            Field f = child.get(i);
+            if( f.getChildren().isEmpty()){
+                --i; 
+                child.remove(f); continue;
+            }
+            MaterialRow row;
+            WidgetGenerator generator = new WidgetGenerator();
+            eventRegister( generator );
+            
+            try {
+                row = generator.getWidget( f, i );
+                generator.createWidget(f, row, i, getMode(), isMouseOverShadow() );
+                            
+                if( isDraggable()){
+                    MaterialDnd.draggable( row, JsDragOptions.create( Axis.VERTICAL ) );
+                    row.addDragEndHandler(event -> {
+                    MaterialToast.fireToast("Added " );
+                    //txtbrief.setText( "" );
+                    int count = 0; 
+                    for ( Widget w : holder.getChildrenList() ){
+                        child.get( count ).setTop( w.getAbsoluteTop() );
+                        child.get( count ).setLeft( w.getAbsoluteLeft() );
+                        count++;
+                    }
+                    
+                    //itemListener.widget( get( row.getId() ));
+                    verticalMove( row, holder );
+
+                   });
+                }             
+                holder.add( row );
+                f.setTop( row.getAbsoluteTop() );
+                f.setLeft( row.getAbsoluteLeft() );
+                
+            } catch (Exception ex) {
+                Window.alert(ex.getMessage());
+                Logger.getLogger(FormEditorView.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+    }
     /**
      * Render the form with related fields and widgets
      * @param holder container widget to draw the form

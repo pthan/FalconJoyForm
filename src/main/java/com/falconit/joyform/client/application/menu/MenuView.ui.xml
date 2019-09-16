@@ -130,7 +130,7 @@
 					</m:MaterialCollapsibleHeader>
 					<m:MaterialCollapsibleBody>
 						<m.html:UnorderedList>
-                                                    <m:MaterialLink targetHistoryToken="{tokens.getFormeditor}" text="Create Form" iconType="ASSIGNMENT" waves="DEFAULT"/>
+                                                    <m:MaterialLink targetHistoryToken="{tokens.getFormeditortest}" text="Create Form" iconType="ASSIGNMENT" waves="DEFAULT"/>
 						</m.html:UnorderedList>
 					</m:MaterialCollapsibleBody>
 				</m:MaterialCollapsibleItem>

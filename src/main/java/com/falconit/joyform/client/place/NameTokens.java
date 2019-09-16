@@ -142,7 +142,13 @@ public class NameTokens {
     
     public static final String tasklist = "tasklist";
     public static final String formeditor = "formeditor";
+    public static final String formeditortest = "formeditortest";
 
+    public static String getFormeditortest() {
+        return formeditortest;
+    }
+
+    
     public static String getFormeditor() {
         return formeditor;
     }
